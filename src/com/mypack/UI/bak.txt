@@ -1,0 +1,199 @@
+package com.mypack.UI;
+
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.Map;
+
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.JTree;
+import javax.swing.plaf.basic.BasicTreeUI;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeCellRenderer;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeNode;
+
+import com.mypack.util.Base64;
+import com.mypack.util.HttpClass;
+
+public class WebmanagePanel extends JPanel {
+	private JTextField path;
+	private JTable table;
+	private HttpClass http;
+	private Map<String, String> payload ;
+	private String resArr[];
+	private String id;
+	private String url;
+	private String scriptType;
+	private String password;
+	private String postText;
+    JTree tree;
+    DefaultTreeModel model;
+    DefaultMutableTreeNode root, child, chosen;
+    JScrollPane treescrollPane;
+    private Base64 base64;
+	/**
+	 * Create the panel.
+	 * @param password 
+	 * @param scriptType 
+	 * @param url 
+	 * @param id 
+	 */
+	public WebmanagePanel(String id, String url, String scriptType, String password,Map<String, String> payload,Base64 base64) {
+		this.payload = payload;
+	    this.id=id;
+	    this.url=url;
+	    this.scriptType = scriptType;
+	    this.password = password;
+	    this.base64 = base64;
+		http = new HttpClass();
+		setLayout(null);
+		path = new JTextField();
+		path.setBounds(57, 5, 750, 24);
+		add(path);
+		path.setColumns(10);
+		JButton readbtn = new JButton("读取");
+		readbtn.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				//add(path.getText());
+				System.out.println(tree.getModel().getChildCount("C:/"));
+			}
+		});
+		readbtn.setBounds(821, 4, 77, 27);
+		add(readbtn);
+		
+		JLabel label = new JLabel("\u8DEF\u5F84\uFF1A");
+		label.setBounds(14, 11, 45, 18);
+		add(label);
+		
+		JScrollPane scrollPane = new JScrollPane();
+		scrollPane.setBounds(130, 37, 768, 467);
+		add(scrollPane);
+		
+		table = new JTable();
+		table.setColumnSelectionAllowed(true);
+		table.setCellSelectionEnabled(true);
+		table.setShowGrid(false);
+		table.setShowHorizontalLines(false);
+		table.setShowVerticalLines(false);
+		table.setModel(new DefaultTableModel(
+			new Object[][] {
+			},
+			new String[] {
+				"../", "", ""
+			}
+		));
+		scrollPane.setViewportView(table);
+		tree = new JTree();
+		this.setIco();
+		treescrollPane = new JScrollPane();
+		treescrollPane.setViewportView(tree);
+		treescrollPane.setBounds(14, 42, 112, 458);
+		add(treescrollPane);
+		
+		this.open();
+	}
+	public void open(){
+		if(scriptType.toLowerCase().equals("php")){
+			resArr = getArray(http.postSend(url, password+payload.get("php.exec")+payload.get("php.systeminfo")),"\t");//用Tab分割
+			if(resArr!=null && resArr.length>0){
+				if(resArr[1]!=null && !(resArr[1].equals("/"))){//如果是windows
+					//解析磁盘
+					String drive[] = getArray(resArr[1],":");
+					initializationTree(resArr[0],drive);
+					path.setText(resArr[2]);
+				}else{
+				}
+			}
+		}
+	}
+	public void initializationTree(String ip,final String[] drive){
+		tree.setModel(new DefaultTreeModel(getDMT(ip,drive)));
+		tree.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent arg0) {
+				if(arg0.getClickCount()==2){
+					add("");
+				}
+			}
+		});
+		
+	}
+	public void add(String getpath){
+		root = (DefaultMutableTreeNode) tree.getLastSelectedPathComponent();
+		if(root!=null){
+			if(getpath.equals("")){
+				TreeNode treeNode[] = root.getPath();
+				for(int i=1;i<treeNode.length;i++){
+					getpath += treeNode[i]+"/";
+				}
+			}
+			System.out.println(1);
+			model = (DefaultTreeModel) tree.getModel();
+			String res[] =getDir(getpath);
+			//添加到树
+			if(res!=null && res.length>0){
+				updateTree(res);
+			}
+			tree.setModel(model);//直接把root覆盖过去
+		}
+	}
+//目录遍历
+	public String[] getDir(String getPath){
+		getPath = getPath.replace("\\", "/");
+		postText = password+payload.get("php.exec")+payload.get("php.getdir")+base64.encodeBase64(getPath.getBytes());
+		String values[] = getArray((http.postSend(url, postText)),"\t");
+		if(values!=null &&values.length>0){
+			return values;
+		}
+		return null;//返回目录
+	}
+
+	
+	public String[] getArray(String result,String split){
+		if(result!=null && result.length()>0){
+			if(result.indexOf("-quan")!=-1){
+				int i = result.indexOf("-quan|")+6;
+				int j = result.indexOf("|quan-");
+				result = result.substring(i, j);
+			}
+			if(result.length()>0){
+				return result.split(split);
+			}
+		}
+		return null;
+	}
+	//添加磁盘树
+	public DefaultMutableTreeNode getDMT(String ip,String values[]){
+		DefaultMutableTreeNode r = new DefaultMutableTreeNode(ip);
+		for(int i=0;i<values.length;i++){
+			r.add(new DefaultMutableTreeNode(values[i]+":/"));
+		}
+		return r;
+	}
+	//更新目录
+	public void updateTree(String values[]){
+		if(values.length>0){
+			for(String i :values){
+				root.add(new DefaultMutableTreeNode(i));
+			}
+		}else{
+			System.out.println("目录为空");
+		}
+	}
+	public void setIco(){
+		DefaultTreeCellRenderer renderer = new DefaultTreeCellRenderer();
+		renderer.setClosedIcon(new ImageIcon(this.getClass().getClassLoader().getResource("").getPath()+"/res/f3.ico"));
+		tree.setCellRenderer(renderer);
+		BasicTreeUI ui=(BasicTreeUI)(tree.getUI());
+	}
+}

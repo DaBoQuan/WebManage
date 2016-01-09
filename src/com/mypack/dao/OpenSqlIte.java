@@ -1,6 +1,10 @@
 package com.mypack.dao;
 
-import java.net.URL;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URLDecoder;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -15,9 +19,9 @@ public class OpenSqlIte {
 	public OpenSqlIte(){
 		try {
 			Class.forName("org.sqlite.JDBC");
-			URL dbpath = getClass().getResource("res/data.db");
-			System.out.println(dbpath);
-			sqlConn = DriverManager.getConnection("jdbc:sqlite:"+dbpath);
+	        String path = System.getProperty("user.dir");
+			sqlConn = DriverManager.getConnection("jdbc:sqlite:"+path+"/data.db");
+	
 		} catch (ClassNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

@@ -8,14 +8,18 @@ public class AnalysisClass {
 		this.payload = payload;
 	}
 	public String[] resultAnalysis(String result,String split){
-		String array[] = new String[]{};
+		String array[]=null;
 		if(result!=null && result.length()>0){
 			if(result.indexOf(payload.get("SPL"))!=-1){
 				int i = result.indexOf(payload.get("SPL"))+payload.get("SPL").length();
 				int j = result.indexOf(payload.get("SPR"));
 				result = result.substring(i, j);
 			}
-			array = result.split(split);
+			if(split!=null){
+				array = result.split(split);
+			}else{
+				return new String[]{result};
+			}
 		}
 		return array;
 	}

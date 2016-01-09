@@ -24,7 +24,7 @@ public class CmdThread implements Runnable{
 	public void run() {
 		// TODO Auto-generated method stub
 		JTabbedPane Jtp = main.getTabbedPane();
-		JPanel tt = new CMDPanel(id,url,password,scriptType,main);
+		JPanel tt = new CMDPanel(id,url,scriptType,password,main);
 		Jtp.addTab(url, tt);
 		main.getTabbedPane().setSelectedComponent(tt);
 	}

@@ -57,7 +57,6 @@ public class WebmanagePanel extends JPanel {
 	 * @param id 
 	 */
 	public WebmanagePanel(String id, final String url, String scriptType, final String password,final Map<String, String> payload,final Base64 base64) {
-		
 		this.payload = payload;
 	    this.id=id;
 	    this.url=url;

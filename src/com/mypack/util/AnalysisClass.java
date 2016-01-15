@@ -13,7 +13,9 @@ public class AnalysisClass {
 			if(result.indexOf(payload.get("SPL"))!=-1){
 				int i = result.indexOf(payload.get("SPL"))+payload.get("SPL").length();
 				int j = result.indexOf(payload.get("SPR"));
+				if(i>0 && j>0){
 				result = result.substring(i, j);
+				}
 			}
 			if(split!=null){
 				array = result.split(split);

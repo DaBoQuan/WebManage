@@ -19,9 +19,9 @@ public class OpenSqlIte {
 	public OpenSqlIte(){
 		try {
 			Class.forName("org.sqlite.JDBC");
-	        String path = System.getProperty("user.dir");
-			sqlConn = DriverManager.getConnection("jdbc:sqlite:"+path+"/data.db");
-	
+//	        String path = System.getProperty("user.dir");
+//			sqlConn = DriverManager.getConnection("jdbc:sqlite:"+path+"/data.db");
+			sqlConn = DriverManager.getConnection("jdbc:sqlite:data.db");
 		} catch (ClassNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

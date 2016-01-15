@@ -4,6 +4,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.net.URLEncoder;
 import java.util.Enumeration;
 import java.util.Map;
 
@@ -63,7 +64,8 @@ public class WebmanagePanel extends JPanel {
 	    this.scriptType = scriptType;
 	    this.password = password;
 	    this.base64 = base64;
-		http = new HttpClass();
+		analysisClass = new AnalysisClass(payload);
+		http = new HttpClass(analysisClass);
 		setLayout(null);
 		path = new JTextField();
 		path.setBounds(57, 5, 750, 24);
@@ -169,7 +171,6 @@ public class WebmanagePanel extends JPanel {
 		status = new JLabel("");
 		status.setBounds(14, 505, 152, 24);
 		add(status);
-		analysisClass = new AnalysisClass(payload);
 		this.open();
 	}
 	
@@ -180,7 +181,7 @@ public class WebmanagePanel extends JPanel {
 			root = new DefaultMutableTreeNode("root");
 			DefaultTreeModel treeModel = new DefaultTreeModel(root);
 			tree.setModel(treeModel);
-			if(resArr[2].indexOf("Win")!=-1){//判断为win系统
+			if(resArr[0].indexOf("\\")!=-1 || resArr[2].indexOf("Win")!=-1){//判断为win系统
 				String dirves[] = null;
 				resArr[1] = resArr[1].replace(":", ":\t");//c:d:e:替换为:\t 便于分割
 				dirves = analysisClass.resultAnalysis(resArr[1], "\t");
@@ -189,7 +190,7 @@ public class WebmanagePanel extends JPanel {
 						root.add(new DefaultMutableTreeNode(dirve+"/"));
 					}
 				}
-				path.setText(resArr[0]);
+				path.setText(resArr[0].replace("\\", "/"));
 			}else{
 				path.setText("/");
 				root.add(new DefaultMutableTreeNode("/"));
@@ -203,7 +204,19 @@ public class WebmanagePanel extends JPanel {
 	}
 	private void get_ReadDict(){
 		String[] temp = null;
-		postText = password+"="+payload.get(scriptType.toUpperCase()+"_MAKE")+"&"+payload.get("ACTION")+"="+payload.get(scriptType.toUpperCase()+"_READDICT")+"&"+payload.get("PARAM1")+"="+base64.encodeBase64(path.getText().getBytes());
+		postText="";
+		if(scriptType.toUpperCase().equals("ASP")){
+			postText = password+"="+payload.get(scriptType.toUpperCase()+"_MAKE");
+			postText = postText.replace("PAYLOAD", payload.get(scriptType.toUpperCase()+"_READDICT"));
+			postText = postText+"&"+payload.get("PARAM1")+"="+base64.str2HexStr(path.getText());
+		}
+		if(scriptType.toUpperCase().equals("PHP")){
+			postText = password+"="+payload.get(scriptType.toUpperCase()+"_MAKE")+"&"+payload.get("ACTION")+"="+payload.get(scriptType.toUpperCase()+"_READDICT")+"&"+payload.get("PARAM1")+"="+base64.encodeBase64(path.getText().getBytes());
+		}
+		if(scriptType.toUpperCase().equals("ASPX")){
+			postText = password+"="+payload.get(scriptType.toUpperCase()+"_READDICT");
+			postText = postText+"&"+payload.get("PARAM1")+"="+base64.encodeBase64(path.getText().getBytes());
+		}
 		System.out.println("2.GET_READDICT"+postText);
 		resultText = http.postSend(url, postText);
 		temp = analysisClass.resultAnalysis(resultText, "\n");
@@ -215,10 +228,15 @@ public class WebmanagePanel extends JPanel {
 
 		// TODO Auto-generated method stub
 		String[] temp = null;
-		postText = password+"="+payload.get(scriptType.toUpperCase()+"_MAKE")+"&"+payload.get("ACTION")+"="+payload.get(scriptType.toUpperCase()+"_INDEX");
+		if(payload.get(scriptType.toUpperCase()+"_MAKE").indexOf("PAYLOAD")!=-1){
+			postText = password+"="+payload.get(scriptType.toUpperCase()+"_MAKE");
+			postText = postText.replace("PAYLOAD", payload.get(scriptType.toUpperCase()+"_INDEX"));
+		}else{
+			postText = password+"="+payload.get(scriptType.toUpperCase()+"_MAKE")+"&"+payload.get("ACTION")+"="+payload.get(scriptType.toUpperCase()+"_INDEX");
+		}
 		System.out.println("1.GET_INDEX="+postText);
 		resultText = http.postSend(url, postText);
-		
+		System.out.println(resultText);
 		temp = analysisClass.resultAnalysis(resultText,"\t");
 		if(temp!=null && temp.length>0){
 			return temp;

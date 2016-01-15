@@ -34,6 +34,7 @@ import com.mypack.Listener.MouseListener;
 import com.mypack.control.ControlClass;
 import com.mypack.dao.OpenSqlIte;
 import com.mypack.util.Base64;
+import com.mypack.util.FileIO;
 import com.mypack.util.MyTable;
 
 public class Main{
@@ -43,7 +44,8 @@ public class Main{
 	private JScrollPane scrollPane;
 	private JTable table;
 	private  AddAndEditWeb addWeb;
-	private OpenSqlIte openSqlIte= new OpenSqlIte();;
+	private OpenSqlIte openSqlIte= new OpenSqlIte();
+	private FileIO fileIO = new FileIO();
 	private DefaultTableModel model;
 	private String[] res;
 	private List<String[]> allResult ;
@@ -322,5 +324,12 @@ public class Main{
 		this.base64 = base64;
 	}
 	
-	
+	public FileIO getFileIO() {
+		return fileIO;
+	}
+
+	public void setFileIO(FileIO fileIO) {
+		this.fileIO = fileIO;
+	}
+
 }

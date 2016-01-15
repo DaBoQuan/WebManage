@@ -24,7 +24,7 @@ public class WebMangeThread implements Runnable {
 	public void run() {
 		// TODO Auto-generated method stub
 		JTabbedPane jTabbed = main.getTabbedPane();
-		JPanel tt = new WebmanagePanel(id,url,scriptType,password,main.getPayload(),main.getBase64());
+		JPanel tt = new WebmanagePanel(id,url,scriptType,password,main.getPayload(),main.getBase64(),main);
 		jTabbed.addTab(url, tt);
 		main.getTabbedPane().setSelectedComponent(tt);
 	}

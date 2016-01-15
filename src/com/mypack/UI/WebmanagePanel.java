@@ -1,16 +1,22 @@
 package com.mypack.UI;
 
+import java.awt.FileDialog;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.Enumeration;
 import java.util.Map;
 
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
@@ -26,6 +32,7 @@ import com.mypack.util.AnalysisClass;
 import com.mypack.util.Base64;
 import com.mypack.util.HttpClass;
 import com.mypack.util.ImageRenderer;
+import com.mypack.util.MyDefaultTreeCellRenderer;
 import com.mypack.util.MyTable;
 
 public class WebmanagePanel extends JPanel {
@@ -50,6 +57,9 @@ public class WebmanagePanel extends JPanel {
     private Base64 base64;
     private JTable table;
     private AnalysisClass analysisClass;
+    private JPopupMenu tableMenu  ;
+    private JScrollPane scrollPane;
+    private Main main;
 	/**
 	 * Create the panel.
 	 * @param password 
@@ -57,7 +67,8 @@ public class WebmanagePanel extends JPanel {
 	 * @param url 
 	 * @param id 
 	 */
-	public WebmanagePanel(String id, final String url, String scriptType, final String password,final Map<String, String> payload,final Base64 base64) {
+	public WebmanagePanel(String id, final String url, String scriptType, final String password,final Map<String, String> payload,final Base64 base64,Main main) {
+		this.main = main;
 		this.payload = payload;
 	    this.id=id;
 	    this.url=url;
@@ -76,7 +87,7 @@ public class WebmanagePanel extends JPanel {
 		label.setBounds(14, 11, 45, 18);
 		add(label);
 		
-		JScrollPane scrollPane = new JScrollPane();
+		scrollPane = new JScrollPane();
 		scrollPane.setBounds(163, 37, 735, 467);
 		add(scrollPane);
 		
@@ -88,10 +99,34 @@ public class WebmanagePanel extends JPanel {
 			}
 		);
 		table = new MyTable(tabModel);
+		
+		tableMenu  = new JPopupMenu();
+		JMenuItem uploadMenu = new JMenuItem("上传");
+		uploadMenu.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				// TODO Auto-generated method stub
+				JFileChooser jfc = new JFileChooser();
+				jfc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES );  
+				jfc.showDialog(table, "open");
+				System.out.println(11);
+				String filePath = jfc.getSelectedFile().toPath().toString();
+				String name = jfc.getSelectedFile().getName();
+				String fileval = WebmanagePanel.this.main.getFileIO().read(filePath);
+				try {
+					upload(WebmanagePanel.this.path.getText()+"/"+name, fileval);
+				} catch (UnsupportedEncodingException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		});
+		tableMenu.add(uploadMenu);
+		
 		table.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mousePressed(MouseEvent arg0) {
-				if(arg0.getClickCount()==2){
+				if(arg0.getClickCount()==2 && arg0.getButton()==MouseEvent.BUTTON1){
 					int index = table.getSelectedRow();
 					if(table.getValueAt(index, 0).equals("0")){
 						String temp = path.getText();
@@ -103,9 +138,17 @@ public class WebmanagePanel extends JPanel {
 					}
 				}
 			}
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				if(e.getButton()==MouseEvent.BUTTON3){
+					int row = table.rowAtPoint(e.getPoint());
+					table.setRowSelectionInterval(row, row);
+					tableMenu.show(scrollPane, e.getX(),e.getY());
+				}
+			}
 		});
-		//table的双击事件
-		
+			
+
 		table.setRowSorter(new TableRowSorter(tabModel));
 		table.setRowHeight(18);
 		table.getColumnModel().getColumn(1).setPreferredWidth(500);
@@ -125,6 +168,7 @@ public class WebmanagePanel extends JPanel {
 		tree = new JTree();
 	
 		tree.setShowsRootHandles(true);
+		tree.setCellRenderer(new MyDefaultTreeCellRenderer());
 		//树双击事件
 		tree.addMouseListener(new MouseAdapter() {
 			@Override
@@ -192,7 +236,7 @@ public class WebmanagePanel extends JPanel {
 				}
 				path.setText(resArr[0].replace("\\", "/"));
 			}else{
-				path.setText("/");
+				path.setText(resArr[0]);
 				root.add(new DefaultMutableTreeNode("/"));
 			}
 
@@ -222,6 +266,34 @@ public class WebmanagePanel extends JPanel {
 		temp = analysisClass.resultAnalysis(resultText, "\n");
 		createTable(temp);//穿件右边列表
 		path_AddTree(path_createTreeNode(path.getText()), temp);;//目录树同步
+	}
+	private void upload(String remotePath,String values) throws UnsupportedEncodingException{
+		if(scriptType.toUpperCase().equals("PHP")){
+			String path = base64.encodeBase64(remotePath.getBytes());
+			path = URLEncoder.encode(path, "UTF-8");
+			postText =  password+"=";
+			postText = postText+payload.get(scriptType.toUpperCase()+"_MAKE")+"&"+payload.get("ACTION")+"="+payload.get(scriptType.toUpperCase()+"_UPLOAD")+"&"+payload.get("PARAM1")+"="+path+"&"+payload.get("PARAM2")+"="+base64.str2HexStr(values);
+		}else if(scriptType.toUpperCase().equals("ASP")){
+			postText = password+"="+payload.get(scriptType.toUpperCase()+"_MAKE");
+			postText = postText.replace("PAYLOAD",payload.get(scriptType.toUpperCase()+"_UPLOAD"));
+			postText = postText+"&"+payload.get("PARAM1")+"="+base64.str2HexStr(remotePath)+"&"+payload.get("PARAM2")+"="+base64.str2HexStr(values);
+		}else if(scriptType.toUpperCase().equals("ASPX")){
+			System.out.println(remotePath);
+			//byte[] temp = remotePath.getBytes("GBK");
+			//remotePath = new String(temp, "UTF-8");
+			String path = base64.encodeBase64(remotePath.getBytes());
+			path = URLEncoder.encode(path, "UTF-8");
+			System.out.println(path);
+			postText = password+"="+payload.get(scriptType.toUpperCase()+"_UPLOAD");
+			postText = postText+"&"+payload.get("PARAM1")+"="+path+"&"+payload.get("PARAM2")+"="+base64.str2HexStr(values);
+		}
+		String resValue = http.postSend(url, postText);
+		String temp[] = analysisClass.resultAnalysis(resValue, null);
+		if(temp!=null && temp.length>0 &&temp[0].equals("1")){
+			status.setText("上传成功");
+		}else{
+			status.setText("上传失败");
+		}
 	}
 //获取目标信息
 	private String[] get_Index() {

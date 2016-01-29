@@ -7,6 +7,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URLEncoder;
 import java.util.Map;
 
@@ -43,7 +44,7 @@ public class CMDPanel extends JPanel {
 	private int len ;
 	private String path;
 	private String execTool;
-	public CMDPanel(String id, String url, String password, String scriptType, Main main) {
+	public CMDPanel(String id, String url, String password, String scriptType, Main main) throws ClassNotFoundException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		this.id = id;
 		this.url = url;
 		this.password = password;
@@ -104,7 +105,12 @@ public class CMDPanel extends JPanel {
 					String cmd = i[i.length-1];
 		        	if(cmd!=null && cmd.length()>0){
 		        		textArea.append("\r\n");
-						execCmd(cmd.replace(path, ""));
+						try {
+							execCmd(cmd.replace(path, ""));
+						} catch (Exception e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
 						arg0.consume();
 		        	}
 			       
@@ -123,7 +129,7 @@ public class CMDPanel extends JPanel {
 			execCmd("uname -a");
 		}
 	}
-	public void execCmd(String cmd){
+	public void execCmd(String cmd) throws ClassNotFoundException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException{
 		postText="";
 		temp = "";
 		if(execTool.equals("cmd")){
@@ -147,7 +153,6 @@ public class CMDPanel extends JPanel {
 			postText = postText+"&"+payload.get("PARAM1")+"="+execTool+"&"+payload.get("PARAM2")+"="+URLEncoder.encode(temp);
 		}
 		String   respond = http.postSend(url, postText);
-		System.out.println(respond);
 		String resule = respond.substring(respond.indexOf(payload.get("SPL"))+1, respond.indexOf("[S]")); //回显容易被截取出错
 		textArea.append(resule);
 		path =respond.substring(respond.indexOf("[S]")+3,respond.indexOf("[E]")).trim()+"/";

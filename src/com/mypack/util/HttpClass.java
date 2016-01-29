@@ -4,9 +4,12 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Map;
+
+import com.mypack.UI.Main;
 
 public class HttpClass {
 	private Map<String, String> payload;
@@ -16,7 +19,26 @@ public class HttpClass {
 		this.analysisClass = analysisClass;
 		this.payload = payload;
 	}
-
+	public static String getip(String url){
+		try {
+			if(url!=null && url.length()>0){
+				
+				if(url.indexOf("http://")!=-1 ||url.indexOf("HTTP://")!=-1){
+					url = url.substring(7,url.length());
+				}
+				if(url.indexOf(":")!=-1){
+					url = url.substring(0,url.indexOf(":"));
+				}else{
+					url = url.substring(0,url.indexOf("/"));
+				}
+			}
+			return InetAddress.getByName(url).getHostAddress();
+		} catch (UnknownHostException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
 	public String postSend(String url,String postText){
 		try {
 			byte[] send = postText.getBytes();
@@ -39,7 +61,8 @@ public class HttpClass {
 			String path = url.substring(url.indexOf("/"),url.length());
 			OutputStream data = socket.getOutputStream();
 			String text = "";
-			text+=payload.get("Request-type")+" "+path+" HTTP/1.0\r\nProxy-Connection: keep-alive\r\n";
+			text+=payload.get("Request-type")+" "+path+" HTTP/1.1\r\nConnection:close\r\n";
+			text+="Host: "+host+"\r\n";
 			text+="Content-Length: "+send.length+"\r\n";
 			text+="User-Agent: "+payload.get("User-Agent")+"\r\n";
 			text+="Content-type: application/x-www-form-urlencoded\r\n";

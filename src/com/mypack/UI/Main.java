@@ -35,10 +35,11 @@ import com.mypack.control.ControlClass;
 import com.mypack.dao.OpenSqlIte;
 import com.mypack.util.Base64;
 import com.mypack.util.FileIO;
+import com.mypack.util.HttpClass;
 import com.mypack.util.MyTable;
 
 public class Main{
-
+	public String ip = "";
 	private JFrame frame;
 	private JPopupMenu webListMenu;
 	private JScrollPane scrollPane;
@@ -216,6 +217,7 @@ public class Main{
 				
 				if(e.getClickCount()==2){
 					int i = table.getSelectedRow();
+						updateIp(table.getValueAt(i, 1).toString(),table.getValueAt(i, 0).toString());
 					webManage(table.getValueAt(i, 0).toString(),table.getValueAt(i, 1).toString(),table.getValueAt(i, 2).toString(),table.getValueAt(i, 4).toString());
 				}
 				if(e.getButton()==MouseEvent.BUTTON3)//只响应鼠标右键单击事件
@@ -233,6 +235,7 @@ public class Main{
 		
 	}
 	public void webManage(String id,String url,String scriptType,String password){
+		//更新ip
 		controlClass.addWebMange(url, id, scriptType,password);
 	}
 	public void cmd(String id,String url,String scriptType,String password){
@@ -243,10 +246,16 @@ public class Main{
 		//清空table所有数据
 		model.setRowCount(0);
 		Object obj[] ;
-		allResult = openSqlIte.getAllResultSet();
-		for(String[] resArray : allResult){
-			model.addRow(resArray);
+		try {
+			allResult = openSqlIte.getAllResultSet();
+			for(String[] resArray : allResult){
+				model.addRow(resArray);
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
+		
 	}
 	//table 选中删除
 	public void getSelect() throws SQLException{
@@ -291,6 +300,11 @@ public class Main{
 		}
 		
 	}
+	public void updateIp(String url,String id){
+		ip = HttpClass.getip(url);
+		openSqlIte.updataIp(ip, id);
+		getAllresult();
+	}
 //get=====set
 	public JTable getTable() {
 		return table;
@@ -331,5 +345,4 @@ public class Main{
 	public void setFileIO(FileIO fileIO) {
 		this.fileIO = fileIO;
 	}
-
 }

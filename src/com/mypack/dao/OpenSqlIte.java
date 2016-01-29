@@ -25,20 +25,15 @@ public class OpenSqlIte {
 			e.printStackTrace();		}
 	}
 	//²éËùÓÐ
-	public List<String[]> getAllResultSet(){
-		try {
-			if(sqlConn!=null){
-				List<String[]> all = new ArrayList<String[]>();
-				ResultSet res = sqlConn.createStatement().executeQuery("select * from lists;");
-				while(res.next()){
-					String temp[] = new String[]{res.getString("id"),res.getString("url"),res.getString("scriptType"),res.getString("ip"),res.getString("password"),res.getString("config"),res.getString("coding")};
-					all.add(temp);
-				}
-				return all;
+	public List<String[]> getAllResultSet() throws SQLException{
+		if(sqlConn!=null){
+			List<String[]> all = new ArrayList<String[]>();
+			ResultSet res = sqlConn.createStatement().executeQuery("select * from lists;");
+			while(res.next()){
+				String temp[] = new String[]{res.getString("id"),res.getString("url"),res.getString("scriptType"),res.getString("ip"),res.getString("password"),res.getString("config"),res.getString("coding")};
+				all.add(temp);
 			}
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			return all;
 		}
 		return null;
 	}
@@ -146,6 +141,22 @@ public class OpenSqlIte {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
+			}
+		}
+		return 0;
+	}
+	public int updataIp(String ip,String id){
+		if(sqlConn!=null){
+			try {
+				System.out.println(ip+"  "+id);
+				stat = sqlConn.prepareStatement("update lists SET ip=? WHERE id=?;");
+				stat.setString(1, ip);
+				stat.setString(2, id);
+				int i = stat.executeUpdate();
+				return i;
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 		}
 		return 0;

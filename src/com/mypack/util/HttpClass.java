@@ -6,20 +6,20 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
-
-import com.mypack.test.test;
+import java.util.Map;
 
 public class HttpClass {
+	private Map<String, String> payload;
 	AnalysisClass analysisClass;
-	public HttpClass(AnalysisClass analysisClass) {
+	public HttpClass(AnalysisClass analysisClass,Map<String, String> payload) {
 		// TODO Auto-generated constructor stub
 		this.analysisClass = analysisClass;
+		this.payload = payload;
 	}
 
 	public String postSend(String url,String postText){
 		try {
-			byte[] payload = postText.getBytes();
-			System.out.println(postText);
+			byte[] send = postText.getBytes();
 			int port=0;
 			String host ="";
 			if(url!=null && url.length()>0){
@@ -39,15 +39,14 @@ public class HttpClass {
 			String path = url.substring(url.indexOf("/"),url.length());
 			OutputStream data = socket.getOutputStream();
 			String text = "";
-			text+="POST "+path+" HTTP/1.0\r\nProxy-Connection: keep-alive\r\n";
-			text+="Content-Length: "+payload.length+"\r\n";
-			text+="User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.86 Safari/537.36\r\n";
+			text+=payload.get("Request-type")+" "+path+" HTTP/1.0\r\nProxy-Connection: keep-alive\r\n";
+			text+="Content-Length: "+send.length+"\r\n";
+			text+="User-Agent: "+payload.get("User-Agent")+"\r\n";
 			text+="Content-type: application/x-www-form-urlencoded\r\n";
 			text+="\r\n";
-			byte[] b3 =new byte[text.getBytes().length+payload.length];
+			byte[] b3 =new byte[text.getBytes().length+send.length];
 			System.arraycopy(text.getBytes(), 0,b3, 0, text.getBytes().length);  
-			System.arraycopy(payload, 0, b3, text.getBytes().length,payload.length);  
-			System.out.println(new String(b3));
+			System.arraycopy(send, 0, b3, text.getBytes().length,send.length);  
 			data.write(b3);
 			data.flush();
 			String temp;

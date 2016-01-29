@@ -52,7 +52,7 @@ public class CMDPanel extends JPanel {
 		this.payload = main.getPayload();
 
 		analysisClass = new AnalysisClass(payload);
-		http = new HttpClass(analysisClass);
+		http = new HttpClass(analysisClass,payload);
 		setLayout(null);
 		
 		JScrollPane scrollPane = new JScrollPane();

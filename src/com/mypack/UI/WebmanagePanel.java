@@ -77,7 +77,7 @@ public class WebmanagePanel extends JPanel {
 	    this.password = password;
 	    this.base64 = base64;
 		analysisClass = new AnalysisClass(payload);
-		http = new HttpClass(analysisClass);
+		http = new HttpClass(analysisClass,payload);
 		setLayout(null);
 		path = new JTextField();
 		path.setBounds(57, 5, 750, 24);
@@ -152,6 +152,15 @@ public class WebmanagePanel extends JPanel {
 						}
 						path.setText(temp+table.getValueAt(index, 1));
 						get_ReadDict();
+					}else{
+						//文件编辑
+						String SelectPath = path.getText()+"/"+table.getValueAt(table.getSelectedRow(), 1);
+						try {
+							readFile(SelectPath);
+						} catch (UnsupportedEncodingException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
 					}
 				}
 			}
@@ -204,7 +213,6 @@ public class WebmanagePanel extends JPanel {
 							pathtxt=pathtxt+temp+"/";
 						}
 	            	}
-					System.out.println(pathtxt);
 					path.setText(pathtxt);
 					get_ReadDict();
 					tree.updateUI();
@@ -284,6 +292,24 @@ public class WebmanagePanel extends JPanel {
 		temp = analysisClass.resultAnalysis(resultText, "\n");
 		createTable(temp);//穿件右边列表
 		path_AddTree(path_createTreeNode(path.getText()), temp);;//目录树同步
+	}
+	private void readFile(String path) throws UnsupportedEncodingException{
+		postText = password+"=";
+		if(scriptType.toUpperCase().equals("PHP")){
+			path = base64.encodeBase64(path.getBytes());
+			path = URLEncoder.encode(path, "UTF-8");
+			postText = postText+payload.get(scriptType.toUpperCase()+"_MAKE")+"&"+payload.get("ACTION")+"="+payload.get(scriptType.toUpperCase()+"_READFILE")+"&"+payload.get("PARAM1")+"="+path;
+		}else if(scriptType.toUpperCase().equals("ASP")){
+			postText = password+"="+payload.get(scriptType.toUpperCase()+"_MAKE");
+			postText = postText.replace("PAYLOAD",payload.get(scriptType.toUpperCase()+"_READFILE"));
+			postText = postText+"&"+payload.get("PARAM1")+"="+URLEncoder.encode(path, "UTF-8");
+		}else if(scriptType.toUpperCase().equals("ASPX")){
+			path = URLEncoder.encode(path, "UTF-8");
+			postText = password+"="+payload.get(scriptType.toUpperCase()+"_READFILE");
+			postText = postText+"&"+payload.get("PARAM1")+"="+path;
+		}
+		String resValue = http.postSend(url, postText);
+		System.out.println(resValue);
 	}
 	private void del(String path) throws UnsupportedEncodingException{
 		postText = password+"=";

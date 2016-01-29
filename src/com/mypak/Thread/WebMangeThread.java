@@ -1,32 +1,32 @@
-package com.Thread;
+package com.mypak.Thread;
 
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 
-import com.mypack.UI.CMDPanel;
 import com.mypack.UI.Main;
 import com.mypack.UI.WebmanagePanel;
 
-public class CmdThread implements Runnable{
+public class WebMangeThread implements Runnable {
 	private String url;
 	private String password;
 	private Main main;
 	private String scriptType;
 	private String id;
-	public CmdThread(String id,String url, String password,String scriptType, Main main) {
+	public WebMangeThread(String id,String url, String password,String scriptType, Main main) {
 		this.id=id;
 		this.url = url;
 		this.password = password;
 		this.main=main;
 		this.scriptType=scriptType;
 	}
+
 	@Override
 	public void run() {
 		// TODO Auto-generated method stub
-		JTabbedPane Jtp = main.getTabbedPane();
-		JPanel tt = new CMDPanel(id,url,scriptType,password,main);
-		Jtp.addTab(url, tt);
+		JTabbedPane jTabbed = main.getTabbedPane();
+		JPanel tt = new WebmanagePanel(id,url,scriptType,password,main.getPayload(),main.getBase64(),main);
+		jTabbed.addTab(url, tt);
 		main.getTabbedPane().setSelectedComponent(tt);
 	}
-
+	
 }

@@ -1,4 +1,4 @@
-package com.mypak.Thread;
+package com.mypack.Thread;
 
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;

@@ -1,8 +1,8 @@
 package com.mypack.control;
 
+import com.mypack.Thread.CmdThread;
+import com.mypack.Thread.WebMangeThread;
 import com.mypack.UI.Main;
-import com.mypak.Thread.CmdThread;
-import com.mypak.Thread.WebMangeThread;
 
 public class ControlClass {
 	private Main main;

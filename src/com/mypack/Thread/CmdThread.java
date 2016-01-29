@@ -1,11 +1,10 @@
-package com.mypak.Thread;
+package com.mypack.Thread;
 
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 
 import com.mypack.UI.CMDPanel;
 import com.mypack.UI.Main;
-import com.mypack.UI.WebmanagePanel;
 
 public class CmdThread implements Runnable{
 	private String url;

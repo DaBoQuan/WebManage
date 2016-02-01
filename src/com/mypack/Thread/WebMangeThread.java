@@ -1,5 +1,7 @@
 package com.mypack.Thread;
 
+import java.io.UnsupportedEncodingException;
+
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 
@@ -24,9 +26,16 @@ public class WebMangeThread implements Runnable {
 	public void run() {
 		// TODO Auto-generated method stub
 		JTabbedPane jTabbed = main.getTabbedPane();
-		JPanel tt = new WebmanagePanel(id,url,scriptType,password,main.getPayload(),main.getBase64(),main);
-		jTabbed.addTab(url, tt);
-		main.getTabbedPane().setSelectedComponent(tt);
+		JPanel tt;
+		try {
+			tt = new WebmanagePanel(id,url,scriptType,password,main.getPayload(),main.getBase64(),main);
+
+			jTabbed.addTab(url, tt);
+			main.getTabbedPane().setSelectedComponent(tt);
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 }

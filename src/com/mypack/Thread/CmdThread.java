@@ -1,5 +1,6 @@
 package com.mypack.Thread;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
 import javax.swing.JPanel;
@@ -46,6 +47,9 @@ public class CmdThread implements Runnable{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (InvocationTargetException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}

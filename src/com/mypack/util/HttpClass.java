@@ -5,11 +5,11 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.Map;
-
-import com.mypack.UI.Main;
 
 public class HttpClass {
 	private Map<String, String> payload;
@@ -57,7 +57,9 @@ public class HttpClass {
 					host = url.substring(0,url.indexOf("/"));
 				}
 			}
-			Socket socket =new  Socket(host,port);
+			Socket socket =new  Socket();
+			socket.connect(new InetSocketAddress(host, port), 10000);
+			socket.setSoTimeout(10000);
 			String path = url.substring(url.indexOf("/"),url.length());
 			OutputStream data = socket.getOutputStream();
 			String text = "";
@@ -79,8 +81,10 @@ public class HttpClass {
 				result=result+temp+"\r\n";
 			}
 			result = analysisClass.resultAnalysis(result, null)[0];
-			return result;
-		} catch (NumberFormatException e) {
+			return new String(result.getBytes(), "GBK");
+		}catch(SocketTimeoutException e){
+			System.out.println("Á¬½Ó³¬Ê±");
+		}catch (NumberFormatException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (UnknownHostException e) {

@@ -1,14 +1,14 @@
 package com.mypack.UI;
 
-import java.awt.FileDialog;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
+import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URLEncoder;
+import java.sql.SQLException;
 import java.util.Enumeration;
 import java.util.Map;
 
@@ -46,6 +46,7 @@ public class WebmanagePanel extends JPanel {
 	private String scriptType;
 	private String password;
 	private String postText;
+	private String coding;
 	private String resultText;
 	private DefaultTableModel tabModel;
 	private int openTree = 0;
@@ -68,8 +69,9 @@ public class WebmanagePanel extends JPanel {
 	 * @param scriptType 
 	 * @param url 
 	 * @param id 
+	 * @throws UnsupportedEncodingException 
 	 */
-	public WebmanagePanel(String id, final String url, String scriptType, final String password,final Map<String, String> payload,final Base64 base64,Main main) {
+	public WebmanagePanel(String id, final String url, String scriptType, final String password,final Map<String, String> payload,final Base64 base64,Main main) throws UnsupportedEncodingException {
 		this.main = main;
 		this.payload = payload;
 	    this.id=id;
@@ -77,6 +79,12 @@ public class WebmanagePanel extends JPanel {
 	    this.scriptType = scriptType;
 	    this.password = password;
 	    this.base64 = base64;
+	    try {
+			coding = main.getOneResult(id)[6];
+		} catch (SQLException e2) {
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
+		}
 		analysisClass = new AnalysisClass(payload);
 		http = new HttpClass(analysisClass,payload);
 		setLayout(null);
@@ -111,15 +119,19 @@ public class WebmanagePanel extends JPanel {
 				JFileChooser jfc = new JFileChooser();
 				jfc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES );  
 				jfc.showDialog(table, "open");
-				String filePath = jfc.getSelectedFile().toPath().toString();
+				File temp = jfc.getSelectedFile();
+				if(temp!=null){
+				String filePath = temp.toPath().toString();
 				String name = jfc.getSelectedFile().getName();
-				String fileval = WebmanagePanel.this.main.getFileIO().read(filePath);
-				try {
-					upload(WebmanagePanel.this.path.getText()+"/"+name, fileval);
-				} catch (Exception e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} 
+					String fileval = WebmanagePanel.this.main.getFileIO().read(filePath);
+					try {
+						upload(WebmanagePanel.this.path.getText()+"/"+name, fileval);
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} 
+				}
+				
 			}
 		});
 		delMenu.addActionListener(new ActionListener() {
@@ -260,7 +272,7 @@ public class WebmanagePanel extends JPanel {
 		this.open();
 	}
 	
-	public void open(){
+	public void open() throws UnsupportedEncodingException{
 		status.setText("载入中。。。。");
 		resArr = get_Index();//获取信息。系统，当前目录，磁盘。
 		if(resArr != null && resArr.length>0){
@@ -287,9 +299,11 @@ public class WebmanagePanel extends JPanel {
 			tree.setRootVisible(false);
 			tree.updateUI();
 			status.setText("完成");
+		}else{
+			Thread.currentThread().stop();
 		}
 	}
-	private void get_ReadDict() throws ClassNotFoundException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException{
+	private void get_ReadDict() throws ClassNotFoundException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, UnsupportedEncodingException{
 		String[] temp = null;
 		postText="";
 		if(scriptType.toUpperCase().equals("ASP")){
@@ -305,6 +319,7 @@ public class WebmanagePanel extends JPanel {
 			postText = postText+"&"+payload.get("PARAM1")+"="+base64.encodeBase64(path.getText().getBytes());
 		}
 		resultText = http.postSend(url, postText);
+		resultText = analysisClass.coding(resultText, coding);
 		temp = analysisClass.resultAnalysis(resultText, "\n");
 		createTable(temp);//穿件右边列表
 		path_AddTree(path_createTreeNode(path.getText()), temp);;//目录树同步
@@ -325,6 +340,7 @@ public class WebmanagePanel extends JPanel {
 			postText = postText+"&"+payload.get("PARAM1")+"="+path;
 		}
 		String resValue = http.postSend(url, postText);
+		System.out.println(resValue);
 	}
 	private void del(String path) throws UnsupportedEncodingException, ClassNotFoundException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException{
 		postText = password+"=";
@@ -342,6 +358,7 @@ public class WebmanagePanel extends JPanel {
 			postText = postText+"&"+payload.get("PARAM1")+"="+path;
 		}
 		String resValue = http.postSend(url, postText);
+		resValue = analysisClass.coding(resValue, coding);
 		String temp[] = analysisClass.resultAnalysis(resValue, null);
 		if(temp!=null && temp.length>0 &&temp[0].equals("1")){
 			status.setText("删除成功");
@@ -366,6 +383,7 @@ public class WebmanagePanel extends JPanel {
 			postText = postText+"&"+payload.get("PARAM1")+"="+path+"&"+payload.get("PARAM2")+"="+base64.str2HexStr(values);
 		}
 		String resValue = http.postSend(url, postText);
+		resValue = analysisClass.coding(resValue, coding);
 		String temp[] = analysisClass.resultAnalysis(resValue, null);
 		if(temp!=null && temp.length>0 &&temp[0].equals("1")){
 			status.setText("上传成功");
@@ -374,7 +392,7 @@ public class WebmanagePanel extends JPanel {
 		}
 	}
 //获取目标信息
-	private String[] get_Index() {
+	private String[] get_Index() throws UnsupportedEncodingException {
 
 		// TODO Auto-generated method stub
 		String[] temp = null;
@@ -385,6 +403,7 @@ public class WebmanagePanel extends JPanel {
 			postText = password+"="+payload.get(scriptType.toUpperCase()+"_MAKE")+"&"+payload.get("ACTION")+"="+payload.get(scriptType.toUpperCase()+"_INDEX");
 		}
 		resultText = http.postSend(url, postText);
+		resultText = analysisClass.coding(resultText, coding);
 		temp = analysisClass.resultAnalysis(resultText,"\t");
 		if(temp!=null && temp.length>0){
 			return temp;
@@ -393,9 +412,9 @@ public class WebmanagePanel extends JPanel {
 	}
 	//右边table添加
 	public void createTable(String[] values){
-		tabModel.setRowCount(0);
-		String[] addTemp = null;
-		if(values!=null & values.length!=-1){
+		if(null!=values && values.length!=-1){
+			tabModel.setRowCount(0);
+			String[] addTemp = null;
 			for(int i =0 ;i<values.length;i++){
 				if(values[i].indexOf("../")==-1 && values[i].indexOf("./")==-1){
 					addTemp = analysisClass.resultAnalysis(values[i],"\t");
@@ -418,18 +437,20 @@ public class WebmanagePanel extends JPanel {
 	}
 	//目录树
 	public void path_AddTree(DefaultMutableTreeNode path,String[] values){
-		path.removeAllChildren();
-		String[] addTemp = null;
-		for(int i =0 ;i<values.length;i++){
-			if(values[i].indexOf("../")==-1 && values[i].indexOf("./")==-1){
-				addTemp = analysisClass.resultAnalysis(values[i],"\t");
-				addTemp = getFileOrPath(addTemp);
-				if(addTemp!=null && addTemp.length>0){
-					if(addTemp[0].equals("0")){
-						path.add(new DefaultMutableTreeNode(addTemp[1]));
+		if(null!=values && values.length>0){
+			path.removeAllChildren();
+			String[] addTemp = null;
+			for(int i =0 ;i<values.length;i++){
+				if(values[i].indexOf("../")==-1 && values[i].indexOf("./")==-1){
+					addTemp = analysisClass.resultAnalysis(values[i],"\t");
+					addTemp = getFileOrPath(addTemp);
+					if(addTemp!=null && addTemp.length>0){
+						if(addTemp[0].equals("0")){
+							path.add(new DefaultMutableTreeNode(addTemp[1]));
+						}
+					}else{
+						status.setText("文件夹不存在");
 					}
-				}else{
-					status.setText("文件夹不存在");
 				}
 			}
 		}

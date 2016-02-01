@@ -158,7 +158,8 @@ public class Main{
 			public void actionPerformed(ActionEvent arg0) {
 				// TODO Auto-generated method stub
 				try {
-					addWeb.run("edit", getOneResult());
+					int i  = table.getSelectedRow();
+					addWeb.run("edit", getOneResult((String) table.getValueAt(i, 0)));
 				} catch (SQLException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -217,7 +218,7 @@ public class Main{
 				
 				if(e.getClickCount()==2){
 					int i = table.getSelectedRow();
-						updateIp(table.getValueAt(i, 1).toString(),table.getValueAt(i, 0).toString());
+					updateIp(table.getValueAt(i, 1).toString(),table.getValueAt(i, 0).toString());
 					webManage(table.getValueAt(i, 0).toString(),table.getValueAt(i, 1).toString(),table.getValueAt(i, 2).toString(),table.getValueAt(i, 4).toString());
 				}
 				if(e.getButton()==MouseEvent.BUTTON3)//只响应鼠标右键单击事件
@@ -266,9 +267,8 @@ public class Main{
 		getAllresult();
 	}
 	//获取一条
-	public String[] getOneResult() throws SQLException{
-		int i = table.getSelectedRow();
-		res =  openSqlIte.getOneResultSet((String) table.getValueAt(i, 0));
+	public String[] getOneResult(String id) throws SQLException{
+		res =  openSqlIte.getOneResultSet(id);
 		return res;
 	}
 	//修改一题

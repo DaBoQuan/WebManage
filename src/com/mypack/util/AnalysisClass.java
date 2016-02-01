@@ -1,5 +1,6 @@
 package com.mypack.util;
 
+import java.io.UnsupportedEncodingException;
 import java.util.Map;
 
 public class AnalysisClass {
@@ -24,5 +25,11 @@ public class AnalysisClass {
 			}
 		}
 		return array;
+	}
+	public String coding(String text,String coding) throws UnsupportedEncodingException{
+		if(text!=null && coding!=null){
+			return new String(text.getBytes(), coding);
+		}
+		return "";
 	}
 }

@@ -142,7 +142,6 @@ public class WebmanagePanel extends JPanel {
 				if(SelectPath!=null && SelectPath.length()>0){
 					try {
 						del(SelectPath);
-						
 					}catch (Exception e1) {
 						// TODO Auto-generated catch block
 						e1.printStackTrace();
@@ -174,7 +173,8 @@ public class WebmanagePanel extends JPanel {
 						//文件编辑
 						String SelectPath = path.getText()+"/"+table.getValueAt(table.getSelectedRow(), 1);
 						try {
-							readFile(SelectPath);
+							WebmanagePanel.this.main.getControlClass().addRead(SelectPath,readFile(SelectPath));
+							
 						} catch (Exception e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
@@ -324,7 +324,7 @@ public class WebmanagePanel extends JPanel {
 		createTable(temp);//穿件右边列表
 		path_AddTree(path_createTreeNode(path.getText()), temp);;//目录树同步
 	}
-	private void readFile(String path) throws UnsupportedEncodingException, ClassNotFoundException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException{
+	private String readFile(String path) throws UnsupportedEncodingException, ClassNotFoundException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException{
 		postText = password+"=";
 		if(scriptType.toUpperCase().equals("PHP")){
 			path = base64.encodeBase64(path.getBytes());
@@ -340,7 +340,7 @@ public class WebmanagePanel extends JPanel {
 			postText = postText+"&"+payload.get("PARAM1")+"="+path;
 		}
 		String resValue = http.postSend(url, postText);
-		System.out.println(resValue);
+		return resValue;
 	}
 	private void del(String path) throws UnsupportedEncodingException, ClassNotFoundException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException{
 		postText = password+"=";

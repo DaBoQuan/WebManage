@@ -42,6 +42,7 @@ public class Main{
 	public String ip = "";
 	private JFrame frame;
 	private JPopupMenu webListMenu;
+	private JPopupMenu SpaceweblistMenu;
 	private JScrollPane scrollPane;
 	private JTable table;
 	private  AddAndEditWeb addWeb;
@@ -129,14 +130,15 @@ public class Main{
 		scrollPane = new JScrollPane();
 		//添加的列表右键菜单
 		webListMenu = new JPopupMenu();
+		SpaceweblistMenu = new JPopupMenu();
 		JMenuItem menuItem1 = new JMenuItem();
-		menuItem1.setText("添加");
+		menuItem1.setText("add");
 		//添加事件
 		MouseListener mouse = new MouseListener(this);
 		menuItem1.addActionListener(mouse);
 		
 		JMenuItem delMenu = new JMenuItem();
-		delMenu.setText("删除");
+		delMenu.setText("del");
 		//删除事件
 		delMenu.addActionListener(new ActionListener() {
 			@Override
@@ -151,7 +153,7 @@ public class Main{
 			}
 		});
 		JMenuItem editMenu = new JMenuItem();
-		editMenu.setText("修改");
+		editMenu.setText("edit");
 		//修改事件
 		editMenu.addActionListener(new ActionListener() {
 			@Override
@@ -167,6 +169,16 @@ public class Main{
 				
 			}
 		});
+		//文件管理
+		JMenuItem webFileManage = new JMenuItem("File");
+		webFileManage.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// TODO Auto-generated method stub
+				FileManage();
+			}
+		});
 		JMenuItem cmdMenu = new JMenuItem("cmd");
 		cmdMenu.addActionListener(new ActionListener() {
 			
@@ -177,17 +189,20 @@ public class Main{
 				cmd(table.getValueAt(i, 0).toString(),table.getValueAt(i, 1).toString(),table.getValueAt(i, 2).toString(),table.getValueAt(i, 4).toString());
 			}
 		});
+		webListMenu.add(webFileManage);
 		webListMenu.add(editMenu);
 		webListMenu.add(menuItem1);
 		webListMenu.add(delMenu);
 		webListMenu.add(cmdMenu);
+		//空白处右键菜单
+		SpaceweblistMenu.add(menuItem1);
 		//scrollPane空白列表出的右键事件
 		scrollPane.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				if(e.getButton()==MouseEvent.BUTTON3)//只响应鼠标右键单击事件
 				{
-					webListMenu.show(scrollPane, e.getX(), e.getY());
+					SpaceweblistMenu.show(scrollPane, e.getX()+10, e.getY());
 				}
 				
 			}
@@ -217,16 +232,14 @@ public class Main{
 			public void mouseClicked(MouseEvent e) {
 				
 				if(e.getClickCount()==2){
-					int i = table.getSelectedRow();
-					updateIp(table.getValueAt(i, 1).toString(),table.getValueAt(i, 0).toString());
-					webManage(table.getValueAt(i, 0).toString(),table.getValueAt(i, 1).toString(),table.getValueAt(i, 2).toString(),table.getValueAt(i, 4).toString());
+					FileManage();
 				}
 				if(e.getButton()==MouseEvent.BUTTON3)//只响应鼠标右键单击事件
 				{
 					//右键自动选中
 					 int row = table.rowAtPoint(e.getPoint());
 					 table.setRowSelectionInterval(row,row);
-					webListMenu.show(scrollPane, e.getX(), e.getY());
+					webListMenu.show(table, e.getX()+10, e.getY());
 				}
 			}
 		});
@@ -234,6 +247,20 @@ public class Main{
 
 
 		
+	}
+	public ControlClass getControlClass() {
+		return controlClass;
+	}
+
+	public void setControlClass(ControlClass controlClass) {
+		this.controlClass = controlClass;
+	}
+
+	public void FileManage(){
+		int i = table.getSelectedRow();
+		updateIp(table.getValueAt(i, 1).toString(),table.getValueAt(i, 0).toString());
+		webManage(table.getValueAt(i, 0).toString(),table.getValueAt(i, 1).toString(),table.getValueAt(i, 2).toString(),table.getValueAt(i, 4).toString());
+
 	}
 	public void webManage(String id,String url,String scriptType,String password){
 		//更新ip
